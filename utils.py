@@ -64,4 +64,50 @@ def SE3Transformation(R,t,points):
     newPoints = newPointsR4[0:3,:]
     return newPoints
 
-def leftJacobianSO3
+def leftJacobianSO3(R):
+    theta = np.arccos((np.trace(R) - 1)/2)
+    THETA_skew = logSO3(R)
+    THETA_skew_squared = np.dot(THETA_skew,THETA_skew)
+    Jl = np.eye(3) + (1-np.cos(theta))/(theta*theta)*THETA_skew + (theta-np.sin(theta))/(theta*theta*theta)*THETA_skew_squared
+    return Jl
+
+def leftJacobianInverseS03(R):
+    theta = np.arccos((np.trace(R) - 1)/2)
+    THETA_skew = logSO3(R)
+    THETA_skew_squared = np.dot(THETA_skew,THETA_skew)
+    invJl = np.eye(3) - THETA_skew/2 + ( 1/(theta*theta) + (1+np.cos(theta))/(2*theta*np.sin(theta)) )*THETA_skew_squared
+    return invJl
+
+def rightJacobianS03(R):
+    theta = np.arccos((np.trace(R) - 1)/2)
+    THETA_skew = logSO3(R)
+    THETA_skew_squared = np.dot(THETA_skew,THETA_skew)
+    Jr = np.eye(3) - (1-np.cos(theta))/(theta*theta)*THETA_skew + (theta-np.sin(theta))/(theta*theta*theta)*THETA_skew_squared 
+    return Jr
+
+def rightJacobianInverseS03(R):
+    theta = np.arccos((np.trace(R) - 1)/2)
+    THETA_skew = logSO3(R)
+    THETA_skew_squared = np.dot(THETA_skew,THETA_skew)
+    invJr = np.eye(3) + THETA_skew/2 + (1/(theta*theta) - (1+np.cos(theta)/(2*theta*np.sin(theta))))*THETA_skew_squared
+    return invJr
+
+def leftJacobianSE3(R,P):
+    P_skew = vectorToSkew(P)
+    theta = np.arccos((np.trace(R) - 1)/2)
+    THETA_skew = logSO3(R)
+    THETAxP = np.dot(THETA_skew,P_skew)
+    PxTHETA = np.dot(P_skew,THETA_skew)
+    THETA_skew_squared = np.dot(THETA_skew,THETA_skew)
+    Qterm1 = P_skew/2
+    Qterm2 = (theta-np.sin(theta))/(theta**3) * (THETAxP + PxTHETA + np.dot(THETAxP,THETA_skew))
+    Qterm3 = (1-theta*theta/2-np.cos(theta))/(theta**4) \
+                * (np.dot(THETA_skew,THETAxP) + np.dot(PxTHETA,THETA_skew) - 3*np.dot(THETAxP,THETA_skew))
+    Qterm4 = 1/2*( (1-theta*theta/2-np.cos(theta))/theta**4 - 3*(theta-np.sin(theta)-(theta**3)/6)/theta**5) \
+                *(np.dot(THETAxP,THETA_skew_squared) + np.dot(THETA_skew_squared,PxTHETA))
+    Q = Qterm1 + Qterm2 -Qterm3 - Qterm4
+    JlSO3 = leftJacobianSO3(R)
+    Jl_top = np.concatenate((JlSO3,Q),1)
+    Jl_bottom = np.concatenate( (np.zeros((3,3)),JlSO3) , 1)
+    Jl = np.concatenate((Jl_top,Jl_bottom),0)
+    return Jl

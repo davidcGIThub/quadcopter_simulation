@@ -18,7 +18,12 @@ C = utils.logSE3(R,t)
 D = logm(T)
 F = utils.SE3toVector(D)
 
+JSO3 = utils.leftJacobianSO3(R)
+JSE3 = utils.leftJacobianSE3(R,t)
+
 print("C: " , C)
 print("D: " , D)
 print("F: " , F)
+print("JSO3: ", JSO3)
+print("JSE3: ", JSE3)
 
