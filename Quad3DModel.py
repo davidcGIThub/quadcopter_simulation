@@ -2,18 +2,28 @@ import utils
 import numpy as np
 
 class Quad3DModel:
-    def __init__(self,ax,x0=0,y0=0,z0=0,psi0=0):
+    def __init__(self,ax,isTarget = False, x0=0,y0=0,z0=0,psi0=0):
+        if isTarget:
+            centerColor = 'g'
+            armsColor = 'g'
+            frontPropsColor = 'g'
+            backPropsColor = 'g'
+        else:
+            centerColor = 'k'
+            armsColor = 'k'
+            frontPropsColor = 'b'
+            backPropsColor = 'r'
         self.translation = np.array([[x0],[y0],[z0]])
         self.rotation = utils.rotationZ(psi0)
-        self.center, = ax.plot([],[],[],lw=.5,color='k' , marker = 'o')
-        self.arm1, = ax.plot([], [], [], lw=2, color='k')
-        self.arm2, = ax.plot([], [], [], lw=2, color='k')
-        self.arm3, = ax.plot([], [], [], lw=2, color='k')
-        self.arm4, = ax.plot([], [], [], lw=2, color='k')
-        self.prop1, = ax.plot([], [], [], lw=2, color='b')
-        self.prop2, = ax.plot([], [], [], lw=2, color='b')
-        self.prop3, = ax.plot([], [], [], lw=2, color='r')
-        self.prop4, = ax.plot([], [], [], lw=2, color='r')
+        self.center, = ax.plot([],[],[],lw=.5,color=centerColor , marker = 'o')
+        self.arm1, = ax.plot([], [], [], lw=2, color=armsColor)
+        self.arm2, = ax.plot([], [], [], lw=2, color=armsColor)
+        self.arm3, = ax.plot([], [], [], lw=2, color=armsColor)
+        self.arm4, = ax.plot([], [], [], lw=2, color=armsColor)
+        self.prop1, = ax.plot([], [], [], lw=2, color=frontPropsColor)
+        self.prop2, = ax.plot([], [], [], lw=2, color=frontPropsColor)
+        self.prop3, = ax.plot([], [], [], lw=2, color=backPropsColor)
+        self.prop4, = ax.plot([], [], [], lw=2, color=backPropsColor)
         self.propRadius = 0.1
         self.armLength = 0.3
         self.propOutline = self.generateCircle(self.propRadius)

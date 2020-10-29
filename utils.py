@@ -1,5 +1,7 @@
 import numpy as np
 
+
+
 def rotationX(phi):
     cphi = np.cos(phi)
     sphi = np.sin(phi)
@@ -17,6 +19,20 @@ def rotationZ(psi):
     spsi = np.sin(psi)
     R = np.array([ [cpsi , -spsi , 0] , [spsi , cpsi , 0 ] , [0 , 0 , 1] ])
     return R
+
+def vectorToSkew(self,vector):
+    vector = vector.flatten()
+    skewMatrix = np.array([[0 , -vector[2] , vector[1]] , [-vector[2] , 0 , -vector[0]] , [-vector[1] , vector[0] , 0]])
+    return skewMatrix
+
+def skewToVector(self,skewMatrix):
+    vector = np.array([ [skewMatrix[2,1]] , [skewMatrix[0,2]], [skewMatrix[1,0]]])
+    return vector
+
+def logRMatrix(self,R):
+    theta = np.arccos((np.trace(R) - 1)/2)
+    X = theta*(R-np.transpose(R))/(2*np.sin(theta))
+    return X
 
 def toSE3Matrix(R,t):
     A = np.concatenate((R,t),1)

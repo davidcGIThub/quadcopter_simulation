@@ -14,10 +14,11 @@ import utils
 fig = plt.figure()
 ax = p3.Axes3D(fig)
 quad = Quad3DModel(ax)
+target = Quad3DModel(ax,True)
 
 
 def update_line(num,quad):
-    translation = np.array([[0],[0],[0]])
+    translation = np.array([[0],[0],[.1]])
     rotation = utils.rotationY(0.1)
     quad.update(rotation,translation)
     quad.draw()
