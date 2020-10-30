@@ -63,7 +63,7 @@ def se3toCartesian(T):
     
 def toSE3Matrix(R,t):
     A = np.concatenate((R,t),1)
-    A = np.concatenate((A,[0,0,0,1]),0)
+    A = np.concatenate((A,np.array([[0,0,0,1]])),0)
     return A
 
 def SE3Transformation(R,t,points):

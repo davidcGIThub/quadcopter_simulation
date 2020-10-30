@@ -2,8 +2,8 @@ import utils
 import numpy as np
 
 class QuadController:
-    def __init__(self,k):
-        self.k = k
+    def __init__(self,kl,ka):
+        self.kl = kl
         
 
     def computeDesiredVelocities(self,xc,xd):
@@ -11,7 +11,7 @@ class QuadController:
         E = utils.logSE3(alpha)
         e = utils.se3toCartesian(E)
         Jl = utils.leftJacobianSE3(E[0:3,0:3],np.array([[E[0,3]],[E[1,3]],[E[2,3]]]))
-        u = self.k*np.dot(Jl,e)
+        u = self.kl*np.dot(Jl,e)
         return u
 
     def kinematicPropagation(self,V_body,xc,dt):

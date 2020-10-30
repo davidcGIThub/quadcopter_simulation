@@ -15,13 +15,15 @@ from QuadController import QuadController
 fig = plt.figure()
 ax = p3.Axes3D(fig)
 quad = Quad3DGraphics(ax)
-controller = QuadController(.5)
+kl = .5
+ka = .2
+controller = QuadController(kl,ka)
 
 #target
 xd = 2
 yd = 3
-zd = 2
-psid = np.pi/2
+zd = 4
+psid = np.pi
 target = Quad3DGraphics(ax,True,xd,yd,zd,psid)
 
 def update_line(num,quad,controller,target,dt):
