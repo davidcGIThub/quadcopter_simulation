@@ -32,7 +32,7 @@ def logSO3(R):
     X = theta*(R-np.transpose(R))/(2*np.sin(theta))
     return X
 
-def logSE3(R,t):
+def logSE3_(R,t):
     theta = np.arccos((np.trace(R) - 1)/2)
     w_skew = theta*(R-np.transpose(R))/(2*np.sin(theta))
     w_skew_squared = np.dot(w_skew , w_skew)
@@ -43,7 +43,22 @@ def logSE3(R,t):
     X = np.concatenate((X,np.array([[0,0,0,0]])) , 0)
     return X
 
-def SE3toVector(T):
+def logSE3(T):
+    R = T[0:3,0:3]
+    t = T[0:3,3]
+    t = np.transpose(t[None,:])
+    X = logSE3_(R,t)
+    return X
+
+
+def SE3toEul(T):
+    R = T[0:3,0:3]
+    w = SO3toEuler(R)
+    t = T[0:3,3]
+    t = np.transpose(t[None,:])
+    return np.concatenate((t,w),0)
+
+def se3toCartesian(T):
     w = skewToVector(T[0:3,0:3])
     t = T[0:3,3]
     t = np.transpose(t[None,:])
@@ -111,3 +126,28 @@ def leftJacobianSE3(R,P):
     Jl_bottom = np.concatenate( (np.zeros((3,3)),JlSO3) , 1)
     Jl = np.concatenate((Jl_top,Jl_bottom),0)
     return Jl
+
+
+
+def rightJacobianSE3(R,P):
+    P_skew = -vectorToSkew(P)
+    theta = -np.arccos((np.trace(R) - 1)/2)
+    THETA_skew = -logSO3(R)
+    THETAxP = np.dot(THETA_skew,P_skew)
+    PxTHETA = np.dot(P_skew,THETA_skew)
+    THETA_skew_squared = np.dot(THETA_skew,THETA_skew)
+    Qterm1 = P_skew/2
+    Qterm2 = (theta-np.sin(theta))/(theta**3) * (THETAxP + PxTHETA + np.dot(THETAxP,THETA_skew))
+    Qterm3 = (1-theta*theta/2-np.cos(theta))/(theta**4) \
+                * (np.dot(THETA_skew,THETAxP) + np.dot(PxTHETA,THETA_skew) - 3*np.dot(THETAxP,THETA_skew))
+    Qterm4 = 1/2*( (1-theta*theta/2-np.cos(theta))/theta**4 - 3*(theta-np.sin(theta)-(theta**3)/6)/theta**5) \
+                *(np.dot(THETAxP,THETA_skew_squared) + np.dot(THETA_skew_squared,PxTHETA))
+    Q = Qterm1 + Qterm2 -Qterm3 - Qterm4
+    JrSO3 = rightJacobianS03(R)
+    Jr_top = np.concatenate((JrSO3,Q),1)
+    Jr_bottom = np.concatenate( (np.zeros((3,3)),JrSO3) , 1)
+    Jr = np.concatenate((Jr_top,Jr_bottom),0)
+    return Jr
+
+def isclose(x, y, rtol=1.e-5, atol=1.e-8):
+    return abs(x-y) <= atol + rtol * abs(y)

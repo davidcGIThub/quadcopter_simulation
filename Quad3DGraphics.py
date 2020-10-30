@@ -1,13 +1,13 @@
 import utils
 import numpy as np
 
-class Quad3DModel:
+class Quad3DGraphics:
     def __init__(self,ax,isTarget = False, x0=0,y0=0,z0=0,psi0=0):
         if isTarget:
             centerColor = 'g'
             armsColor = 'g'
             frontPropsColor = 'g'
-            backPropsColor = 'g'
+            backPropsColor = 'y'
         else:
             centerColor = 'k'
             armsColor = 'k'
@@ -31,10 +31,23 @@ class Quad3DModel:
         self.prop2Center = np.array([[self.armLength],[-self.armLength],[0]])/np.sqrt(2)
         self.prop3Center = np.array([[-self.armLength],[self.armLength],[0]])/np.sqrt(2)
         self.prop4Center = np.array([[-self.armLength],[-self.armLength],[0]])/np.sqrt(2)
+        temp = np.concatenate((self.rotation,self.translation),1)
+        self.homogeneousTransformation = np.concatenate( (temp , np.array([[0,0,0,1]])) , 0 )
+
+    def getRotation(self):
+        return self.rotation
+
+    def getTranslation(self):
+        return self.Translation
+
+    def getTransformation(self):
+        return self.homogeneousTransformation
 
     def update(self, rotation,translation):
         self.rotation = np.dot(rotation,self.rotation)
         self.translation = translation + self.translation
+        temp = np.concatenate((self.rotation,self.translation),1)
+        self.homogeneousTransformation = np.concatenate( (temp , np.array([[0,0,0,1]])) , 0 )
 
     def draw(self):
         self.drawArms()
