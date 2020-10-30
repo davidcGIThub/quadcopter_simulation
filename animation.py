@@ -21,39 +21,27 @@ controller = QuadController(.5)
 xd = 2
 yd = 3
 zd = 2
-psid = np.pi/2
-desiredRotation = utils.rotationZ(psid)
-desiredTranslation = np.array([[xd],[yd],[zd]])
-temp = np.concatenate((desiredRotation,desiredTranslation),1)
-desiredTransformation = np.concatenate((temp,np.array([[0,0,0,1]])))
+psid = 0 #np.pi/2
 target = Quad3DGraphics(ax,True,xd,yd,zd,psid)
 
-
-def update_line(num,quad,controller,target):
+def update_line(num,quad,controller,target,dt):
     xc = quad.getTransformation()
     xd = target.getTransformation()
     V_body = controller.computeDesiredVelocities(xc,xd)
-    v_body = np.array([V_body[0,0]],V_body[1,0],V_body[2,0])
-    w_body = np.array([V_body[3,0]],V_body[4,0],V_body[5,0])
-    Rbody2local = np.transpose(xc.getRotation())
-    v_local = np.dot(Rbody2local,v_body)
-    w_local = np.dot(Rbody2local,w_body)
-
-    translation = np.array([[0],[0],[.1]])
-    rotation = utils.rotationY(0.1)
+    [rotation,translation] = controller.kinematicPropagation(V_body,xc,dt)
     quad.update(rotation,translation)
     quad.draw()
     target.draw()
 
 
 # Setting the axes properties
-ax.set_xlim3d([-5.0, 5.0])
+ax.set_xlim3d([-10.0, 10.0])
 ax.set_xlabel('X')
 
-ax.set_ylim3d([-5.0, 5.0])
+ax.set_ylim3d([-10.0, 10.0])
 ax.set_ylabel('Y')
 
-ax.set_zlim3d([-5.0, 5.0])
+ax.set_zlim3d([-10.0, 10.0])
 ax.set_zlabel('Z')
 
 ax.set_title('3D Test')

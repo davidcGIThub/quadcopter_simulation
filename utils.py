@@ -20,7 +20,7 @@ def rotationZ(psi):
 
 def vectorToSkew(vector):
     vector = vector.flatten()
-    skewMatrix = np.array([[0 , -vector[2] , vector[1]] , [-vector[2] , 0 , -vector[0]] , [-vector[1] , vector[0] , 0]])
+    skewMatrix = np.array([[0 , -vector[2] , vector[1]] , [vector[2] , 0 , -vector[0]] , [-vector[1] , vector[0] , 0]])
     return skewMatrix
 
 def skewToVector(skewMatrix):
@@ -34,11 +34,14 @@ def logSO3(R):
 
 def logSE3_(R,t):
     theta = np.arccos((np.trace(R) - 1)/2)
-    w_skew = theta*(R-np.transpose(R))/(2*np.sin(theta))
-    w_skew_squared = np.dot(w_skew , w_skew)
-    V = np.eye(3) + np.dot( (1-np.cos(theta))/(theta*theta) , w_skew) + \
-        np.dot( (theta - np.sin(theta))/(theta*theta*theta)  , w_skew_squared)
-    t_ = np.linalg.solve(V,t)
+    if theta == 0:
+        w_skew = np.eye(3)
+        t_ = t
+    else:
+        w_skew_squared = np.dot(w_skew , w_skew)
+        V = np.eye(3) + np.dot( (1-np.cos(theta))/(theta*theta) , w_skew) + \
+            np.dot( (theta - np.sin(theta))/(theta*theta*theta)  , w_skew_squared)
+        t_ = np.linalg.solve(V,t)
     X = np.concatenate((w_skew,t_),1)
     X = np.concatenate((X,np.array([[0,0,0,0]])) , 0)
     return X
@@ -49,14 +52,6 @@ def logSE3(T):
     t = np.transpose(t[None,:])
     X = logSE3_(R,t)
     return X
-
-
-def SE3toEul(T):
-    R = T[0:3,0:3]
-    w = SO3toEuler(R)
-    t = T[0:3,3]
-    t = np.transpose(t[None,:])
-    return np.concatenate((t,w),0)
 
 def se3toCartesian(T):
     w = skewToVector(T[0:3,0:3])
@@ -110,21 +105,24 @@ def rightJacobianInverseS03(R):
 def leftJacobianSE3(R,P):
     P_skew = vectorToSkew(P)
     theta = np.arccos((np.trace(R) - 1)/2)
-    THETA_skew = logSO3(R)
-    THETAxP = np.dot(THETA_skew,P_skew)
-    PxTHETA = np.dot(P_skew,THETA_skew)
-    THETA_skew_squared = np.dot(THETA_skew,THETA_skew)
-    Qterm1 = P_skew/2
-    Qterm2 = (theta-np.sin(theta))/(theta**3) * (THETAxP + PxTHETA + np.dot(THETAxP,THETA_skew))
-    Qterm3 = (1-theta*theta/2-np.cos(theta))/(theta**4) \
-                * (np.dot(THETA_skew,THETAxP) + np.dot(PxTHETA,THETA_skew) - 3*np.dot(THETAxP,THETA_skew))
-    Qterm4 = 1/2*( (1-theta*theta/2-np.cos(theta))/theta**4 - 3*(theta-np.sin(theta)-(theta**3)/6)/theta**5) \
-                *(np.dot(THETAxP,THETA_skew_squared) + np.dot(THETA_skew_squared,PxTHETA))
-    Q = Qterm1 + Qterm2 -Qterm3 - Qterm4
-    JlSO3 = leftJacobianSO3(R)
-    Jl_top = np.concatenate((JlSO3,Q),1)
-    Jl_bottom = np.concatenate( (np.zeros((3,3)),JlSO3) , 1)
-    Jl = np.concatenate((Jl_top,Jl_bottom),0)
+    if theta == 0:
+        Jl = np.eye(6)
+    else:
+        THETA_skew = logSO3(R)
+        THETAxP = np.dot(THETA_skew,P_skew)
+        PxTHETA = np.dot(P_skew,THETA_skew)
+        THETA_skew_squared = np.dot(THETA_skew,THETA_skew)
+        Qterm1 = P_skew/2
+        Qterm2 = (theta-np.sin(theta))/(theta**3) * (THETAxP + PxTHETA + np.dot(THETAxP,THETA_skew))
+        Qterm3 = (1-theta*theta/2-np.cos(theta))/(theta**4) \
+                    * (np.dot(THETA_skew,THETAxP) + np.dot(PxTHETA,THETA_skew) - 3*np.dot(THETAxP,THETA_skew))
+        Qterm4 = 1/2*( (1-theta*theta/2-np.cos(theta))/theta**4 - 3*(theta-np.sin(theta)-(theta**3)/6)/theta**5) \
+                    *(np.dot(THETAxP,THETA_skew_squared) + np.dot(THETA_skew_squared,PxTHETA))
+        Q = Qterm1 + Qterm2 -Qterm3 - Qterm4
+        JlSO3 = leftJacobianSO3(R)
+        Jl_top = np.concatenate((JlSO3,Q),1)
+        Jl_bottom = np.concatenate( (np.zeros((3,3)),JlSO3) , 1)
+        Jl = np.concatenate((Jl_top,Jl_bottom),0)
     return Jl
 
 
@@ -148,6 +146,18 @@ def rightJacobianSE3(R,P):
     Jr_bottom = np.concatenate( (np.zeros((3,3)),JrSO3) , 1)
     Jr = np.concatenate((Jr_top,Jr_bottom),0)
     return Jr
+
+def normalizeRotation(R):
+    c3 = R[0:3,2]
+    c2 = R[0:3,1]
+    c1 = np.cross(c2,c3)
+    c2 = np.cross(c3,c1)
+    c1 = c1/np.linalg.norm(c1)
+    c2 = c2/np.linalg.norm(c2)
+    c3 = c3/np.linalg.norm(c3)
+    normalizedR = np.concatenate((np.concatenate((c1[:,None],c2[:,None]),1),c3[:,None]),1)
+    return  normalizedR
+
 
 def isclose(x, y, rtol=1.e-5, atol=1.e-8):
     return abs(x-y) <= atol + rtol * abs(y)

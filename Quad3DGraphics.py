@@ -38,13 +38,14 @@ class Quad3DGraphics:
         return self.rotation
 
     def getTranslation(self):
-        return self.Translation
+        return self.translation
 
     def getTransformation(self):
         return self.homogeneousTransformation
 
     def update(self, rotation,translation):
         self.rotation = np.dot(rotation,self.rotation)
+        #self.rotation = utils.normalizeRotation(self.rotation)
         self.translation = translation + self.translation
         temp = np.concatenate((self.rotation,self.translation),1)
         self.homogeneousTransformation = np.concatenate( (temp , np.array([[0,0,0,1]])) , 0 )
