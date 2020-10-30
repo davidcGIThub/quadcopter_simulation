@@ -38,9 +38,10 @@ def logSE3_(R,t):
         w_skew = np.eye(3)
         t_ = t
     else:
+        w_skew = theta*(R-np.transpose(R))/(2*np.sin(theta))
         w_skew_squared = np.dot(w_skew , w_skew)
-        V = np.eye(3) + np.dot( (1-np.cos(theta))/(theta*theta) , w_skew) + \
-            np.dot( (theta - np.sin(theta))/(theta*theta*theta)  , w_skew_squared)
+        V = np.eye(3) +  (1-np.cos(theta))/(theta*theta) * w_skew \
+            + (theta - np.sin(theta))/(theta*theta*theta) * w_skew_squared
         t_ = np.linalg.solve(V,t)
     X = np.concatenate((w_skew,t_),1)
     X = np.concatenate((X,np.array([[0,0,0,0]])) , 0)

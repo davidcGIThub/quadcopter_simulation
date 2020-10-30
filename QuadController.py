@@ -18,7 +18,7 @@ class QuadController:
         currentRotation = xc[0:3,0:3]
         v_body = np.array([[V_body[0,0]],[V_body[1,0]],[V_body[2,0]]])
         w_body = np.array([[V_body[3,0]],[V_body[4,0]],[V_body[5,0]]])
-        Rbody2local = np.transpose(currentRotation)
+        Rbody2local = currentRotation
         v_local = np.dot(Rbody2local,v_body)
         w_local = np.dot(Rbody2local,w_body)
         translation = v_local*dt

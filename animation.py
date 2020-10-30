@@ -21,7 +21,7 @@ controller = QuadController(.5)
 xd = 2
 yd = 3
 zd = 2
-psid = 0 #np.pi/2
+psid = np.pi/2
 target = Quad3DGraphics(ax,True,xd,yd,zd,psid)
 
 def update_line(num,quad,controller,target,dt):
@@ -35,13 +35,13 @@ def update_line(num,quad,controller,target,dt):
 
 
 # Setting the axes properties
-ax.set_xlim3d([-10.0, 10.0])
+ax.set_xlim3d([-5.0, 5.0])
 ax.set_xlabel('X')
 
-ax.set_ylim3d([-10.0, 10.0])
+ax.set_ylim3d([-5.0, 5.0])
 ax.set_ylabel('Y')
 
-ax.set_zlim3d([-10.0, 10.0])
+ax.set_zlim3d([0.0, 10.0])
 ax.set_zlabel('Z')
 
 ax.set_title('3D Test')
